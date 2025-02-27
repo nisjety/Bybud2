@@ -1,0 +1,81 @@
+<html lang="">
+<head>
+    <title>CORS Test</title>
+</head>
+<body>
+<h1>CORS Test</h1>
+<button id="testCorsButton">Test CORS</button>
+<button id="testOptionsButton">Test OPTIONS</button>
+<button id="testAuthApiButton">Test Auth API</button>
+<div id="result" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;"></div>
+
+<script>
+    document.getElementById('testCorsButton').addEventListener('click', async () => {
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = 'Testing CORS...';
+
+        try {
+            const response = await fetch('http://localhost:8080/api/cors-test', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.text();
+            resultDiv.innerHTML = `Success: ${data}`;
+        } catch (error) {
+            resultDiv.innerHTML = `Error: ${error.message}`;
+            console.error('CORS Test Error:', error);
+        }
+    });
+
+    document.getElementById('testOptionsButton').addEventListener('click', async () => {
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = 'Testing OPTIONS preflight...';
+
+        try {
+            // This will trigger an OPTIONS preflight
+            const response = await fetch('http://localhost:8080/api/cors-test', {
+                method: 'OPTIONS',
+                headers: {
+                    'Access-Control-Request-Method': 'GET',
+                    'Access-Control-Request-Headers': 'content-type,authorization',
+                    'Origin': window.location.origin
+                }
+            });
+
+            const headers = {};
+            response.headers.forEach((value, key) => {
+                headers[key] = value;
+            });
+
+            resultDiv.innerHTML = `OPTIONS Response Status: ${response.status}<br>Headers: ${JSON.stringify(headers, null, 2)}`;
+        } catch (error) {
+            resultDiv.innerHTML = `Error: ${error.message}`;
+            console.error('OPTIONS Test Error:', error);
+        }
+    });
+
+    document.getElementById('testAuthApiButton').addEventListener('click', async () => {
+        const resultDiv = document.getElementById('result');
+        resultDiv.innerHTML = 'Testing Auth API...';
+
+        try {
+            const response = await fetch('http://localhost:8080/api/auth/health', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.text();
+            resultDiv.innerHTML = `Success: ${data}`;
+        } catch (error) {
+            resultDiv.innerHTML = `Error: ${error.message}`;
+            console.error('Auth API Test Error:', error);
+        }
+    });
+</script>
+</body>
+</html>

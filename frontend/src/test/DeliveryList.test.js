@@ -1,8 +1,8 @@
 import React from 'react';
-import { render, screen, waitFor, within } from '@testing-library/react';
-import DeliveryList from '../pages/DeliveryList';
-import { getDeliveriesForCustomer } from '../services/DeliveryService';
-import { BrowserRouter } from 'react-router-dom';
+import {render, screen, waitFor, within} from '@testing-library/react';
+import DeliveryList from '../pages/CourierDeliveryList.jsx';
+import {getDeliveriesForCustomer} from '../services/DeliveryService';
+import {BrowserRouter} from 'react-router-dom';
 
 jest.mock('../services/DeliveryService', () => ({
     getDeliveriesForCustomer: jest.fn(),

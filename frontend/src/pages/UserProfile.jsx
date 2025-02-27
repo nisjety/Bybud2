@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { getDeliveriesForCustomer } from "../services/DeliveryService";
-import { getUserById } from "../services/UserService";
+import { getDeliveriesForCustomer } from "../services/deliveryService";
+import { getUserDetailsByUsernameOrEmail } from "../services/userService";
 
 const UserProfile = () => {
     const [user, setUser] = useState(null);
@@ -8,29 +8,51 @@ const UserProfile = () => {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    const customerId = localStorage.getItem("userId");
+    // Retrieve user data from localStorage
+    const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+    const username = userData.username; // used as the customerId + for user details
+
+    // Helper to format date arrays:
+    const formatDate = (dateData) => {
+        if (!dateData) return "N/A";
+        // If the backend returns [year, month, day, hour, minute, second, nanos]
+        if (Array.isArray(dateData) && dateData.length >= 3) {
+            const [year, month, day, hour = 0, minute = 0, second = 0, nanosecond = 0] = dateData;
+            const ms = Math.floor(nanosecond / 1000000);
+            const date = new Date(year, month - 1, day, hour, minute, second, ms);
+            return date.toLocaleString();
+        }
+        // fallback if it's just a string
+        return dateData;
+    };
 
     useEffect(() => {
         const fetchUserAndDeliveries = async () => {
             try {
-                if (!customerId) throw new Error("User ID not found.");
+                if (!username) {
+                    throw new Error("Username not found. Please log in again.");
+                }
 
-                // Fetch the user data
-                const userData = await getUserById(Number(customerId));
-                setUser(userData);
+                // 1) Fetch user details
+                const userResponse = await getUserDetailsByUsernameOrEmail(username);
+                setUser(userResponse.data);
 
-                // Fetch user's deliveries
-                const data = await getDeliveriesForCustomer(Number(customerId));
-                setDeliveries(data || []);
+                // 2) Fetch deliveries for that customer
+                const deliveriesData = await getDeliveriesForCustomer(username);
+                setDeliveries(deliveriesData || []);
             } catch (err) {
-                setError(err.response?.data?.message || err.message || "Failed to fetch your profile data.");
+                setError(
+                    err.response?.data?.message ||
+                    err.message ||
+                    "Failed to fetch your profile data."
+                );
             } finally {
                 setLoading(false);
             }
         };
 
         fetchUserAndDeliveries();
-    }, [customerId]);
+    }, [username]);
 
     if (loading) return <p>Loading your profile...</p>;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
@@ -38,14 +60,28 @@ const UserProfile = () => {
     return (
         <div>
             <h2>User Profile</h2>
+
             {user ? (
                 <div style={{ marginBottom: "20px" }}>
-                    <p><strong>Full Name:</strong> {user.fullName}</p>
-                    <p><strong>Email:</strong> {user.email}</p>
-                    <p><strong>Phone Number:</strong> {user.phoneNumber}</p>
-                    <p><strong>Active:</strong> {user.active ? "Yes" : "No"}</p>
-                    <p><strong>Date of Birth:</strong> {user.dateOfBirth || "N/A"}</p>
-                    <p><strong>Roles:</strong> {user.roles ? user.roles.join(", ") : "None"}</p>
+                    <p>
+                        <strong>Full Name:</strong> {user.fullName || "N/A"}
+                    </p>
+                    <p>
+                        <strong>Email:</strong> {user.email || "N/A"}
+                    </p>
+                    <p>
+                        <strong>Phone Number:</strong> {user.phoneNumber || "N/A"}
+                    </p>
+                    <p>
+                        <strong>Active:</strong> {user.active ? "Yes" : "No"}
+                    </p>
+                    <p>
+                        <strong>Date of Birth:</strong>{" "}
+                        {user.dateOfBirth ? formatDate(user.dateOfBirth) : "N/A"}
+                    </p>
+                    <p>
+                        <strong>Roles:</strong> {user.roles ? user.roles.join(", ") : "None"}
+                    </p>
                 </div>
             ) : (
                 <p>User details not found.</p>
@@ -64,7 +100,7 @@ const UserProfile = () => {
                             <strong>Status:</strong> {delivery.status || "Unknown"} <br />
                             <strong>Created:</strong>{" "}
                             {delivery.createdDate
-                                ? new Date(delivery.createdDate).toLocaleString()
+                                ? formatDate(delivery.createdDate)
                                 : "Unknown"}
                         </li>
                     ))}

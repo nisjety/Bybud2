@@ -1,14 +1,15 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { login } from "../services/AuthService";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { toast } from "react-toastify";
+// Make sure this import matches your actual file name (e.g. "authService.js")
+import { login } from "../services/authService";
 
 const Login = ({ setAuthenticated }) => {
     const [identifier, setIdentifier] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
-
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -17,58 +18,90 @@ const Login = ({ setAuthenticated }) => {
         setError(null);
 
         try {
-            const response = await login(identifier, password);
-            const { data } = response;
+            // The login function calls /api/auth/login and returns:
+            // { status, message, data: { accessToken, refreshToken, userId, username, roles } }
+            const result = await login(identifier, password);
+            // result is typically { status: "SUCCESS", message: "...", data: { ... } }
+            const loginData = result.data;
+            if (loginData) {
+                // Store all user data in localStorage
+                localStorage.setItem("userData", JSON.stringify(loginData));
+                // The next two lines are optional if you want "backward compatibility":
+                localStorage.setItem("roles", JSON.stringify(loginData.roles));
+                localStorage.setItem("userId", loginData.userId);
 
-            if (data) {
-                localStorage.setItem("userData", JSON.stringify(data));
-                localStorage.setItem("roles", JSON.stringify(data.roles));
-                localStorage.setItem("userId", data.id);
+                // Mark the user as authenticated in your app-level state (if using a parent or Redux)
                 setAuthenticated(true);
 
+                // Show success message
+                toast.success("Login successful!");
+
                 // Redirect based on roles
-                if (data.roles.includes("COURIER")) {
-                    navigate("/courier");
-                } else if (data.roles.includes("CUSTOMER")) {
+                if (loginData.roles.includes("COURIER")) {
+                    // e.g. go to courier's page or deliveries
+                    navigate("/deliveries");
+                } else if (loginData.roles.includes("CUSTOMER")) {
                     navigate("/profile");
                 } else {
-                    navigate("/");
+                    // Fall back to home page or admin page if you have an admin role
+                    navigate("/home");
                 }
             }
         } catch (err) {
-            setError(err.response?.data?.message || "Login failed. Please check your credentials.");
+            const errorMessage =
+                err.response?.data?.message ||
+                "Login failed. Please check your credentials.";
+            setError(errorMessage);
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div>
-            <h2>Login</h2>
-            {error && <div style={{ color: "red" }}>{error}</div>}
-            <form onSubmit={handleSubmit}>
-                <label>
-                    Username or Email:
-                    <input
-                        type="text"
-                        value={identifier}
-                        onChange={(e) => setIdentifier(e.target.value)}
-                        required
-                    />
-                </label>
-                <label>
-                    Password:
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
-                </label>
-                <button type="submit" disabled={isLoading}>
-                    {isLoading ? "Logging in..." : "Login"}
-                </button>
-            </form>
+        <div className="login-container fade-in">
+            <div className="card login-card">
+                <h2>Login</h2>
+                {error && <div className="error-message">{error}</div>}
+                <form onSubmit={handleSubmit} className="login-form">
+                    <div className="form-group">
+                        <label htmlFor="identifier">Username or Email</label>
+                        <input
+                            id="identifier"
+                            type="text"
+                            value={identifier}
+                            onChange={(e) => setIdentifier(e.target.value)}
+                            required
+                            className="form-control"
+                            placeholder="Enter your username or email"
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="password">Password</label>
+                        <input
+                            id="password"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                            className="form-control"
+                            placeholder="Enter your password"
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        className="button button-primary"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? "Logging in..." : "Login"}
+                    </button>
+                </form>
+                <div className="login-footer">
+                    <p>
+                        Don't have an account? <Link to="/register">Register here</Link>
+                    </p>
+                </div>
+            </div>
         </div>
     );
 };

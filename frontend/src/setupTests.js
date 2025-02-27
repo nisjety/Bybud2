@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom';
-import { TextEncoder, TextDecoder } from 'util';
+import {TextDecoder, TextEncoder} from 'util';
 
 
 // Add global polyfills for TextEncoder and TextDecoder

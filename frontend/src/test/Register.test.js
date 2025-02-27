@@ -1,8 +1,8 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router-dom"; // Import MemoryRouter
+import {fireEvent, render, screen, waitFor} from "@testing-library/react";
+import {MemoryRouter} from "react-router-dom"; // Import MemoryRouter
 import Register from "../pages/Register";
-import { register, getRoles } from "../services/AuthService";
+import {getRoles, register} from "../services/AuthService";
 
 jest.mock("../services/AuthService", () => ({
     register: jest.fn(),

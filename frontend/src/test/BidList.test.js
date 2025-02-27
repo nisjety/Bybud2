@@ -1,8 +1,8 @@
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import {render, screen, waitFor} from "@testing-library/react";
+import {MemoryRouter, Route, Routes} from "react-router-dom";
 import BidList from "../pages/BidList";
-import { getBidsForDelivery } from "../services/DeliveryService";
+import {getBidsForDelivery} from "../services/DeliveryService";
 
 jest.mock("../services/DeliveryService", () => ({
     getBidsForDelivery: jest.fn(),

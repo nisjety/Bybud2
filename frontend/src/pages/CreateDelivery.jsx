@@ -1,43 +1,57 @@
 import React, { useState } from "react";
-import { createDelivery } from "../services/DeliveryService";
+import { createDelivery } from "../services/deliveryService";
 
 const CreateDelivery = () => {
     const [formData, setFormData] = useState({
         deliveryDetails: "",
         pickupAddress: "",
         deliveryAddress: "",
+        deliveryDate: "",
     });
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(false);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
+        setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
         setError(null);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         try {
-            const userId = localStorage.getItem("userId");
-            if (!userId) throw new Error("User ID not found. Please log in again.");
+            // Retrieve user data
+            const userDataStr = localStorage.getItem("userData");
+            if (!userDataStr) throw new Error("User data not found. Please log in again.");
+            const userData = JSON.parse(userDataStr);
+            const username = userData.username;
+            if (!username) throw new Error("Username not found in user data.");
 
             const payload = {
-                customerId: Number(userId),
+                // The backend enforces that only a logged-in CUSTOMER or ADMIN can create
+                customerId: username,
                 deliveryDetails: formData.deliveryDetails,
                 pickupAddress: formData.pickupAddress,
                 deliveryAddress: formData.deliveryAddress,
+                // The backend may store or ignore this date
+                deliveryDate: formData.deliveryDate,
             };
 
-            // Call the API
             await createDelivery(payload);
 
-            // On success
+            // If successful:
             setSuccess(true);
-            setFormData({ deliveryDetails: "", pickupAddress: "", deliveryAddress: "" });
+            setFormData({
+                deliveryDetails: "",
+                pickupAddress: "",
+                deliveryAddress: "",
+                deliveryDate: "",
+            });
         } catch (err) {
-            setError(err.response?.data?.message || err.message || "Failed to create delivery.");
+            setError(
+                err.response?.data?.message ||
+                err.message ||
+                "Failed to create delivery."
+            );
             setSuccess(false);
         }
     };
@@ -47,6 +61,7 @@ const CreateDelivery = () => {
             <h2>Create Delivery</h2>
             {success && <p style={{ color: "green" }}>Delivery created successfully!</p>}
             {error && <p style={{ color: "red" }}>{error}</p>}
+
             <form onSubmit={handleSubmit}>
                 <label>
                     Delivery Details:
@@ -79,6 +94,17 @@ const CreateDelivery = () => {
                         value={formData.deliveryAddress}
                         onChange={handleChange}
                         placeholder="Enter delivery address"
+                        required
+                    />
+                </label>
+                <br />
+                <label>
+                    Delivery Date:
+                    <input
+                        type="date"
+                        name="deliveryDate"
+                        value={formData.deliveryDate}
+                        onChange={handleChange}
                         required
                     />
                 </label>

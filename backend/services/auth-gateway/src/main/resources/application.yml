@@ -1,0 +1,174 @@
+server:
+  port: 8080
+  netty:
+    connection-timeout: 30000  # Time in milliseconds
+
+spring:
+  config:
+    import: "optional:classpath:/kafka-config.yml" # Import Kafka config from kafka module
+  application:
+    name: auth-gateway
+
+
+  cloud:
+    gateway:
+      routes:
+        # Route for auth endpoints (except health)
+        - id: auth-gateway-internal
+          uri: forward:///
+          predicates:
+            - Path=/api/auth/**
+
+        # Route for user-service
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/users/**
+
+        # Route for delivery-service
+        - id: delivery-service
+          uri: lb://delivery-service
+          predicates:
+            - Path=/api/delivery/**
+
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/auth
+      database: auth
+      auto-index-creation: true
+      repositories:
+        type: reactive
+
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 6000  # Time in milliseconds
+      database: 0
+      client-type: lettuce
+      connect-timeout: 5000  # Time in milliseconds
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+          max-wait: -1
+        shutdown-timeout: 100
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000  # Time in milliseconds
+      cache-null-values: false
+      key-prefix: "auth:"
+      use-key-prefix: true
+
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 3
+      batch-size: 16384
+      buffer-memory: 33554432
+      properties:
+        max.block.ms: 3000
+        request.timeout.ms: 5000
+    consumer:
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      group-id: bybud-consumer-group
+      properties:
+        session.timeout.ms: 45000
+        heartbeat.interval.ms: 15000
+        max.poll.interval.ms: 300000
+        max.poll.records: 500
+        enable.auto.commit: false
+
+service:
+  urls:
+    auth-gateway: http://localhost:8080
+    user-service: http://localhost:8083
+    delivery-service: http://localhost:8082
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    preferIpAddress: true
+
+
+bybud:
+  security:
+    jwtSecret: f4c3e5a35fa33f64f102d721a4d5c160e357fa970ce4a5f8646ab7e748d85785afbe7d438c6745d202102a7c76989c86562abdb458af9a1d0838d227d1ec35cff2cc77f03bab5735f37a39f7689aa2a3c3c0549624c907959e524d7f4441474ba06f50c61308572cbc95dd86a2a14da00186b846b72990b06bc9ff1a8b29868be159fd2c55abc14519f1a326ff1faa5aeed8e247c1ed89047593ad0a46c2c13f3e074fb44848a12aaa1001687728cdaf55a5d14d94a0dcae2aad2e6b9938af201bff9787eac96c6e8621884cc031097f41660908bebc8a7c759449b909ae91e253eb723499633fb6fb0e148ba87fa1c90ab5976a4eb71e62a03a88a79194641b
+    jwtRefreshSecret: f4c3e5a35fa33f64f102d721a4d5c160e357fa970ce4a5f8646ab7e748d85785afbe7d438c6745d202102a7c76989c86562abdb458af9a1d0838d227d1ec35cff2cc77f03bab5735f37a39f7689aa2a3c3c0549624c907959e524d7f4441474ba06f50c61308572cbc95dd86a2a14da00186b846b72990b06bc9ff1a8b29868be159fd2c55abc14519f1a326ff1faa5aeed8e247c1ed89047593ad0a46c2c13f3e074fb44848a12aaa1001687728cdaf55a5d14d94a0dcae2aad2e6b9938af201bff9787eac96c6e8621884cc031097f41660908bebc8a7c759449b909ae91e253eb723499633fb6fb0e148ba87fa1c90ab5976a4eb71e62a03a88a79194641b
+    jwtExpirationMs: 8640000  # 24 hours in milliseconds
+    jwtRefreshExpirationMs: 86400000  # 10 days in milliseconds
+    excluded-paths:
+      - /api/auth/login
+      - /api/auth/refresh
+      - /api/auth/health
+      - /api/auth/test-token-storage
+      - /api/users/register
+      - /api/health
+      - /api/delivery/health
+      - /api/users/health
+      - /api/users/credentials
+      - /api/auth/cors-test
+      - /api/auth/cors-test-json
+    enabled: true
+
+
+internal:
+  secret: f4c3e5a35fa33f64f102d721a4d5c160e357fa970ce4a5f8646ab7e748d85785afbe7d438c6745d202102a7c76989c86562abdb458af9a1d0838d227d1ec35cff2cc77f03bab5735f37a39f7689aa2a3c3c0549624c907959e524d7f4441474ba06f50c61308572cbc95dd86a2a14da00186b846b72990b06bc9ff1a8b29868be159fd2c55abc14519f1a326ff1faa5aeed8e247c1ed89047593ad0a46c2c13f3e074fb44848a12aaa1001687728cdaf55a5d14d94a0dcae2aad2e6b9938af201bff9787eac96c6e8621884cc031097f41660908bebc8a7c759449b909ae91e253eb723499633fb6fb0e148ba87fa1c90ab5976a4eb71e62a03a88a79194641b
+
+
+logging:
+  level:
+    root: INFO
+    com.bybud: DEBUG
+    io.github.resilience4j: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    mongodb.core.ReactiveMongoTemplate: DEBUG
+    org.springframework.data.redis: DEBUG
+    io.lettuce.core: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        wait-duration-in-open-state: 50000  # Time in milliseconds
+        failure-rate-threshold: 50
+    instances:
+      authGateway:
+        base-config: default
+
+  ratelimiter:
+    configs:
+      default:
+        limit-for-period: 100
+        limit-refresh-period: 1000  # Time in milliseconds
+        timeout-duration: 500  # Time in milliseconds
+    instances:
+      authGateway:
+        base-config: default
+
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+    instances:
+      authGateway:
+        base-config: default

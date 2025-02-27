@@ -1,5 +1,10 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { lazy, Suspense, useState, useEffect } from "react";
+import React, { lazy, Suspense, useEffect, useState } from "react";
+import {
+    BrowserRouter as Router,
+    Navigate,
+    Route,
+    Routes
+} from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Loader from "./components/Loader";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -7,11 +12,12 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 
-// Lazy load components for better performance
+// Lazy load pages
 const HomePage = lazy(() => import("./pages/HomePage"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
-const DeliveryList = lazy(() => import("./pages/DeliveryList"));
+const CustomerDeliveryList = lazy(() => import("./pages/CustomerDeliveryList"));
+const CourierDeliveryList = lazy(() => import("./pages/CourierDeliveryList"));
 const CreateDelivery = lazy(() => import("./pages/CreateDelivery"));
 const UserProfile = lazy(() => import("./pages/UserProfile"));
 const CourierPage = lazy(() => import("./pages/CourierPage"));
@@ -19,39 +25,78 @@ const CourierPage = lazy(() => import("./pages/CourierPage"));
 const App = () => {
     const [authenticated, setAuthenticated] = useState(false);
     const [roles, setRoles] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // Check authentication and fetch roles on component mount
+    // Check authentication on mount and when localStorage changes
     useEffect(() => {
-        const userData = JSON.parse(localStorage.getItem("userData") || "{}");
-        if (userData && Array.isArray(userData.roles)) {
-            setRoles(userData.roles);
-            setAuthenticated(true);
-        } else {
-            setAuthenticated(false);
-        }
+        const checkAuthState = () => {
+            setLoading(true);
+            try {
+                const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+                const accessToken = userData.accessToken;
+
+                if (accessToken && Array.isArray(userData.roles)) {
+                    setRoles(userData.roles);
+                    setAuthenticated(true);
+                } else {
+                    setRoles([]);
+                    setAuthenticated(false);
+                }
+            } catch (err) {
+                console.error("Error parsing userData:", err);
+                setRoles([]);
+                setAuthenticated(false);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        // Initial check
+        checkAuthState();
+
+        // Listen for storage events from other tabs
+        const handleStorageChange = (e) => {
+            if (e.key === "userData" || e.key === null) {
+                checkAuthState();
+            }
+        };
+
+        window.addEventListener("storage", handleStorageChange);
+        return () => {
+            window.removeEventListener("storage", handleStorageChange);
+        };
     }, []);
 
-    // Handle user logout
+    // Global logout handler
     const onLogout = () => {
-        localStorage.clear();
+        localStorage.removeItem("userData");
+        localStorage.removeItem("roles");
+        localStorage.removeItem("userId");
         setAuthenticated(false);
         setRoles([]);
     };
 
+    // Quick role checks
+    const isCourier = roles.includes("COURIER");
+    const isCustomer = roles.includes("CUSTOMER");
+
+    if (loading) {
+        return <Loader message="Initializing application..." />;
+    }
+
     return (
         <Router>
-            <Navbar authenticated={authenticated} onLogout={onLogout} />
-            <main>
+            <Navbar authenticated={authenticated} onLogout={onLogout} roles={roles} />
+            <main className="main-content">
                 <Suspense fallback={<Loader />}>
                     <Routes>
-                        {/* Home Route */}
+                        {/* Root path: redirect to the correct route if authenticated */}
                         <Route
                             path="/"
                             element={
                                 authenticated ? (
-                                    // Redirect based on user role
-                                    roles.includes("COURIER") ? (
-                                        <Navigate to="/courier" replace />
+                                    isCourier ? (
+                                        <Navigate to="/deliveries" replace />
                                     ) : (
                                         <Navigate to="/profile" replace />
                                     )
@@ -61,51 +106,83 @@ const App = () => {
                             }
                         />
 
-                        {/* Authentication Routes */}
-                        <Route path="/login" element={<Login setAuthenticated={setAuthenticated} />} />
-                        <Route path="/register" element={<Register />} />
+                        {/* Auth Routes */}
+                        <Route
+                            path="/login"
+                            element={
+                                authenticated ? (
+                                    <Navigate to="/" replace />
+                                ) : (
+                                    <Login setAuthenticated={setAuthenticated} />
+                                )
+                            }
+                        />
+                        <Route
+                            path="/register"
+                            element={
+                                authenticated ? (
+                                    <Navigate to="/" replace />
+                                ) : (
+                                    <Register />
+                                )
+                            }
+                        />
 
-                        {/* Protected Routes */}
+                        {/* Home (public) */}
+                        <Route path="/home" element={<HomePage />} />
+
+                        {/* Customer-Only Routes */}
                         <Route
                             path="/delivery"
                             element={
-                                <ProtectedRoute authenticated={authenticated}>
-                                    <DeliveryList />
+                                <ProtectedRoute authenticated={authenticated} allowedRoles={["CUSTOMER"]}>
+                                    <CustomerDeliveryList />
                                 </ProtectedRoute>
                             }
                         />
                         <Route
                             path="/delivery/create"
                             element={
-                                <ProtectedRoute authenticated={authenticated}>
+                                <ProtectedRoute authenticated={authenticated} allowedRoles={["CUSTOMER"]}>
                                     <CreateDelivery />
                                 </ProtectedRoute>
                             }
                         />
+
+                        {/* Courier-Only Routes */}
                         <Route
-                            path="/profile"
+                            path="/deliveries"
                             element={
-                                <ProtectedRoute authenticated={authenticated}>
-                                    <UserProfile />
+                                <ProtectedRoute authenticated={authenticated} allowedRoles={["COURIER"]}>
+                                    <CourierDeliveryList />
                                 </ProtectedRoute>
                             }
                         />
                         <Route
                             path="/courier"
                             element={
-                                <ProtectedRoute authenticated={authenticated}>
+                                <ProtectedRoute authenticated={authenticated} allowedRoles={["COURIER"]}>
                                     <CourierPage />
                                 </ProtectedRoute>
                             }
                         />
 
-                        {/* Fallback Route for Undefined Paths */}
+                        {/* Profile can be either Customer or Courier */}
+                        <Route
+                            path="/profile"
+                            element={
+                                <ProtectedRoute authenticated={authenticated} allowedRoles={["CUSTOMER", "COURIER"]}>
+                                    <UserProfile />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        {/* Fallback */}
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Routes>
                 </Suspense>
             </main>
 
-            {/* Toast Notifications Container */}
             <ToastContainer
                 position="top-right"
                 autoClose={3000}

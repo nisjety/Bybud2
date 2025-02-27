@@ -1,7 +1,7 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import {fireEvent, render, screen, waitFor} from "@testing-library/react";
 import CreateDelivery from "../pages/CreateDelivery";
-import { createDelivery } from "../services/DeliveryService";
+import {createDelivery} from "../services/DeliveryService";
 
 jest.mock("../services/DeliveryService", () => ({
     createDelivery: jest.fn(),

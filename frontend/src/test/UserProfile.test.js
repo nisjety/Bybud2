@@ -1,6 +1,6 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
-import { getUserProfile, updateUserProfile } from "../services/UserService";
+import {fireEvent, render, screen, waitFor, within} from "@testing-library/react";
+import {getUserProfile, updateUserProfile} from "../services/UserService";
 import UserProfile from "../pages/UserProfile";
 
 jest.mock("../services/UserService", () => ({

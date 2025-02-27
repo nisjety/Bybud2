@@ -1,43 +1,60 @@
-import axios from "axios";
+import { DeliveryAPI } from "./APIUtility";
 
-const DELIVERY_API_BASE = "http://localhost:8082/api/delivery";
-
-// Get deliveries for a specific customer
-export const getDeliveriesForCustomer = async (customerId) => {
-    const response = await axios.get(`${DELIVERY_API_BASE}/customer/${customerId}`);
-    return response.data.data; // Access the 'data' field from the API response
-};
-
-// Get deliveries for a specific courier
-export const getDeliveriesForCourier = async (courierId) => {
-    const response = await axios.get(`${DELIVERY_API_BASE}/courier/${courierId}`);
-    return response.data.data; // Access the 'data' field from the API response
-};
-
-// Create a new delivery
+/**
+ * Create a new delivery (Customer or Admin).
+ */
 export const createDelivery = async (deliveryData) => {
-    const response = await axios.post(`${DELIVERY_API_BASE}`, deliveryData, {
+    const response = await DeliveryAPI.post("/", deliveryData, {
         headers: { "Content-Type": "application/json" },
     });
     return response.data.data;
 };
 
-// Accept a delivery (Courier)
-export const acceptDelivery = async (deliveryId, courierId) => {
-    const response = await axios.put(`${DELIVERY_API_BASE}/${deliveryId}/accept/${courierId}`);
+/**
+ * Get deliveries for a specific customer (customer or admin).
+ */
+export const getDeliveriesForCustomer = async (customerId) => {
+    const response = await DeliveryAPI.get(`/customer/${customerId}`);
     return response.data.data;
 };
 
-// Update delivery status
-export const updateDeliveryStatus = async (deliveryId, status, userId) => {
-    const response = await axios.put(`${DELIVERY_API_BASE}/${deliveryId}/status`, null, {
-        params: { status, userId },
+/**
+ * Get deliveries for a specific courier (courier or admin).
+ */
+export const getDeliveriesForCourier = async (courierId) => {
+    const response = await DeliveryAPI.get(`/courier/${courierId}`);
+    return response.data.data;
+};
+
+/**
+ * Get all deliveries (courier or admin).
+ */
+export const getAllDeliveries = async () => {
+    const response = await DeliveryAPI.get("/");
+    return response.data.data;
+};
+
+/**
+ * Accept a delivery (courier only).
+ */
+export const acceptDelivery = async (deliveryId) => {
+    const response = await DeliveryAPI.put(`/${deliveryId}/accept`);
+    return response.data.data;
+};
+
+/**
+ * Update a delivery's status (courier, customer, or admin).
+ */
+export const updateDeliveryStatus = async (deliveryId, status) => {
+    const response = await DeliveryAPI.put(`/${deliveryId}/status`, null, {
+        params: { status },
     });
     return response.data.data;
 };
 
-// Get all deliveries
-export const getAllDeliveries = async () => {
-    const response = await axios.get(`${DELIVERY_API_BASE}`);
-    return response.data.data;
+/**
+ * Cancel a delivery (customer or admin).
+ */
+export const cancelDelivery = async (deliveryId) => {
+    return await updateDeliveryStatus(deliveryId, "CANCELED");
 };

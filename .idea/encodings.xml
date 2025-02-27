@@ -1,15 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="Encoding">
-    <file url="file://$PROJECT_DIR$/auth-service/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/auth-service/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/common/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/common/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/delivery-service/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/delivery-service/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/modules/client/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/modules/client/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/modules/common/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/modules/common/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/modules/entity/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/modules/entity/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/modules/kafka/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/modules/kafka/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/modules/security/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/modules/security/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/modules/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/modules/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/services/auth-gateway/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/services/auth-gateway/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/services/auth-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/services/auth-service/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/services/delivery-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/services/delivery-service/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/services/eureka-server/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/services/eureka-server/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/services/integrations/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/services/integrations/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/services/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/services/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/services/user-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/services/user-service/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/backend/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/user-service/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/user-service/src/main/resources" charset="UTF-8" />
   </component>
 </project>

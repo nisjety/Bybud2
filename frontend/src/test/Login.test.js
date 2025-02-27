@@ -1,7 +1,7 @@
 import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import {fireEvent, render, screen, waitFor} from "@testing-library/react";
 import Login from "../pages/Login";
-import { login } from "../services/AuthService";
+import {login} from "../services/AuthService";
 
 jest.mock("../services/AuthService", () => ({
     login: jest.fn(),
