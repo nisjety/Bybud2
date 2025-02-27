@@ -1,0 +1,148 @@
+server:
+  port: 8081
+  netty:
+    connection-timeout: 30000
+
+spring:
+  application:
+    name: auth-service  # Service name for Eureka registration
+
+  data:
+    # MongoDB Configuration
+    mongodb:
+      uri: mongodb://localhost:27017/auth
+      database: auth
+      auto-index-creation: true
+      repositories:
+        type: reactive
+
+    # Redis configuration
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 6000ms
+      database: 0
+      client-type: lettuce
+      connect-timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 2
+          max-wait: -1ms
+        shutdown-timeout: 100ms
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000
+      cache-null-values: false
+      key-prefix: "auth:"
+      use-key-prefix: true
+
+
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.type.mapping: "authEvent:com.bybud.authservice.event.AuthEvent"
+        spring.json.trusted.packages: "com.bybud.authservice.*"
+        retries: 3
+        acks: all
+        compression.type: snappy
+        batch.size: 16384
+        linger.ms: 5
+    consumer:
+      group-id: auth-service-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.type.mapping: "authEvent:com.bybud.authservice.event.AuthEvent"
+        spring.json.trusted.packages: "com.bybud.authservice.*"
+        isolation.level: read_committed
+        auto.offset.reset: latest
+    listener:
+      ack-mode: MANUAL_IMMEDIATE
+      concurrency: 3
+      type: BATCH
+
+# Eureka client configuration
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    preferIpAddress: true
+
+# Service URLs
+auth-service:
+  url: http://localhost:8081
+delivery-service:
+  url: http://localhost:8082
+user-service:
+  url: http://localhost:8083
+
+# Kafka Topics Configuration
+bybud:
+  kafka:
+    topics:
+      user-registered: "user_registered"
+      user-profile-updates: "user_profile_updates"
+      delivery-created: "delivery_created"
+      delivery-status-updated: "delivery_status_updated"
+
+  security:
+    jwtSecret: f4c3e5a35fa33f64f102d721a4d5c160e357fa970ce4a5f8646ab7e748d85785afbe7d438c6745d202102a7c76989c86562abdb458af9a1d0838d227d1ec35cff2cc77f03bab5735f37a39f7689aa2a3c3c0549624c907959e524d7f4441474ba06f50c61308572cbc95dd86a2a14da00186b846b72990b06bc9ff1a8b29868be159fd2c55abc14519f1a326ff1faa5aeed8e247c1ed89047593ad0a46c2c13f3e074fb44848a12aaa1001687728cdaf55a5d14d94a0dcae2aad2e6b9938af201bff9787eac96c6e8621884cc031097f41660908bebc8a7c759449b909ae91e253eb723499633fb6fb0e148ba87fa1c90ab5976a4eb71e62a03a88a79194641b
+    jwtRefreshSecret: f4c3e5a35fa33f64f102d721a4d5c160e357fa970ce4a5f8646ab7e748d85785afbe7d438c6745d202102a7c76989c86562abdb458af9a1d0838d227d1ec35cff2cc77f03bab5735f37a39f7689aa2a3c3c0549624c907959e524d7f4441474ba06f50c61308572cbc95dd86a2a14da00186b846b72990b06bc9ff1a8b29868be159fd2c55abc14519f1a326ff1faa5aeed8e247c1ed89047593ad0a46c2c13f3e074fb44848a12aaa1001687728cdaf55a5d14d94a0dcae2aad2e6b9938af201bff9787eac96c6e8621884cc031097f41660908bebc8a7c759449b909ae91e253eb723499633fb6fb0e148ba87fa1c90ab5976a4eb71e62a03a88a79194641b
+    jwtExpirationMs: 86400000
+    jwtRefreshExpirationMs: 8640000
+    excluded-paths:
+      - /api/auth/login
+      - /api/health
+    enabled: true
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.bybud: DEBUG
+    io.github.resilience4j: DEBUG
+    org.springframework.security: DEBUG
+    mongodb.core.ReactiveMongoTemplate: DEBUG
+    org.apache.kafka: DEBUG
+    org.springframework.kafka: DEBUG
+    org.springframework.data.redis: DEBUG
+    io.lettuce.core: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# CORS Configuration
+cors:
+  allowed-origins: "http://localhost:5173,http://auth-service.example.com"
+  allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
+
+# Resilience4j Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      authService:
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        waitDurationInOpenState: 50s
+        failureRateThreshold: 50
+  ratelimiter:
+    instances:
+      authService:
+        limitForPeriod: 100
+        limitRefreshPeriod: 1s
+        timeoutDuration: 500ms
+  retry:
+    instances:
+      authService:
+        maxAttempts: 3
+        waitDuration: 1s

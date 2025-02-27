@@ -1,0 +1,37 @@
+# common/application.yml
+server:
+  port: 8080
+
+auth-service:
+    url: http://localhost:8081
+delivery-service:
+    url: http://localhost:8082
+user-service:
+    url: http://localhost:8083
+
+rest:
+  template:
+    connectTimeout: 5000
+    readTimeout: 5000
+
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    h2:
+      console:
+        enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: none
+
+logging:
+  level:
+    root: INFO
+
+bybud:
+  app:
+    jwtSecret: R9uvesizQpPFmDWcFGmoB0RIpN84cEWLzwE5GjAOyfE=
+    jwtRefreshSecret: R9uvesizQpPFmDWcFGmoB0RIpN84cEWLzwE5GjAOyfE@abcdefgh1234567890
+    jwtExpirationMs: 86400000
+    jwtRefreshExpirationMs: 8640000

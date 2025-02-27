@@ -1,0 +1,47 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 3
+      batch-size: 16384
+      buffer-memory: 33554432
+      properties:
+        max.block.ms: 3000
+        request.timeout.ms: 5000
+    consumer:
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      group-id: bybud-consumer-group
+      properties:
+        session.timeout.ms: 45000
+        heartbeat.interval.ms: 15000
+        max.poll.interval.ms: 300000
+        max.poll.records: 500
+        enable.auto.commit: false
+
+# Custom Kafka topics configuration
+bybud:
+  kafka:
+    topics:
+      user-registered: user-registered-topic
+      user-profile-updates: user-profile-updates-topic
+      delivery-created: delivery-created-topic
+      delivery-status-updated: delivery-status-updated-topic
+      auth-user-authenticated: auth-user-authenticated-topic
+      auth-user-logout: auth-user-logout-topic
+      auth-token-refreshed: auth-token-refreshed-topic
+      auth-token-invalidated: auth-token-invalidated-topic
+      auth-account-lockout: auth-account-lockout-topic
+
+# Logging
+logging:
+  level:
+    org.apache.kafka: INFO
+    org.springframework.kafka: INFO
+    com.bybud.kafka: DEBUG
+    reactor.kafka: DEBUG
+    org.springframework.boot.context.config: TRACE  # Add this to debug configuration loading
