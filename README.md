@@ -1,4 +1,4 @@
-This guide provides a concise overview of how to set up and run the ByBud microservices architecture, and some insight into the core system components, communication patterns, and best practices.
+This guide provides a concise overview of how to set up and run the ByBud microservices architecture.
  
 Getting Started
 1.	To build all backend services, open a terminal in the project's root directory and run:
@@ -23,4 +23,4 @@ Getting Started
 •	npm install
 •	npm run dev
 It may take a few minutes before all services are fully operational. (up to 3 min)
-![image](https://github.com/user-attachments/assets/91a5b805-8ffd-4821-b2d8-16fb91444e9a)
+
